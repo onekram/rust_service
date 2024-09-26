@@ -1,0 +1,33 @@
+[package]
+name = "rust-project-l0"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# server
+axum = "0.7.5"
+axum-server = "0.7.1"
+tokio = {version = "1.12", features = ["full"]}
+
+# serde
+serde = {version = "1.0", features = ["derive"]}
+serde_json = "1.0.128"
+
+# sql
+tokio-postgres = "0.7.11"
+
+# log
+log = "0.4"
+log4rs = "1.2"
+
+# cl args
+clap = {version = "4.5.17", features = ["derive", "env"]}
+
+# env
+dotenv = "0.15"
+
+# time 
+chrono = "0.4"
+
+[dev-dependencies]
+sqlx-cli = { version = "0.6", features = ["postgres"]}
