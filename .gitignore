@@ -1,0 +1,9 @@
+# Cargo build
+/target
+
+# IDE
+/.vscode
+
+# Log
+/log
+
