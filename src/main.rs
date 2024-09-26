@@ -37,12 +37,7 @@ async fn main() {
     log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
 
 
-    let args = CliArgs::parse();
-    let server_address = format!("{}:{}", args.server_host, args.server_port);
-    let database_url = format!(
-        "postgres://{}:{}@{}:{}/{}",
-        args.db_user, args.db_password, args.db_host, args.db_port, args.db_name
-    );
+    let (server_address, database_url) = CliArgs::parse_urls();
 
     info!("Starting server...");
 
