@@ -5,7 +5,6 @@ use axum::{
     http::StatusCode,
     Router,
 };
-use clap::Parser;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio_postgres::{NoTls, Client};
@@ -38,12 +37,15 @@ async fn main() {
 
 
     let (server_address, database_url) = CliArgs::parse_urls();
+    start_connection(server_address, database_url).await;
+}
 
+async fn start_connection(server_address: String, database_url: String) {
     info!("Starting server...");
 
     let (client, connection) = tokio_postgres::connect(&database_url, NoTls)
-        .await
-        .expect("Failed to connect to the database");
+    .await
+    .expect("Failed to connect to the database");
     
     tokio::spawn(async move {
         if let Err(e) = connection.await {
