@@ -44,10 +44,7 @@ async fn main() {
         args.db_user, args.db_password, args.db_host, args.db_port, args.db_name
     );
 
-
     info!("Starting server...");
-    info!("{}", server_address);
-    info!("{}", database_url);
 
     let (client, connection) = tokio_postgres::connect(&database_url, NoTls)
         .await
