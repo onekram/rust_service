@@ -5,6 +5,7 @@ use axum::{
     http::StatusCode,
     Router,
 };
+use clap::Parser;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio_postgres::{NoTls, Client};
@@ -33,10 +34,13 @@ type ClientAndCacheLock = Arc<RwLock<ClientAndCache>>;
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-    log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
+    let args = CliArgs::parse();
 
+    if args.log {
+        log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
+    }
 
-    let (server_address, database_url) = CliArgs::parse_urls();
+    let (server_address, database_url) = cli::parse_urls(args);
     start_connection(server_address, database_url).await;
 }
 

@@ -24,16 +24,16 @@ pub struct CliArgs {
 
     #[arg(long, env)]
     pub db_name: String,
+
+    #[arg(short = 'l')]
+    pub log: bool,
 }
 
-impl CliArgs {
-    pub fn parse_urls() -> (String, String) {
-        let args = CliArgs::parse();
-        let server_address = format!("{}:{}", args.server_host, args.server_port);
-        let database_url = format!(
-            "postgres://{}:{}@{}:{}/{}",
-            args.db_user, args.db_password, args.db_host, args.db_port, args.db_name
-        );
-        (server_address, database_url)
-    }
+pub fn parse_urls(args: CliArgs) -> (String, String) {
+    let server_address = format!("{}:{}", args.server_host, args.server_port);
+    let database_url = format!(
+        "postgres://{}:{}@{}:{}/{}",
+        args.db_user, args.db_password, args.db_host, args.db_port, args.db_name
+    );
+    (server_address, database_url)
 }
