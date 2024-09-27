@@ -5,7 +5,7 @@ use log::info;
 
 
 pub async fn add_order(order: &Order, client: &Client) -> Result<(), Box<dyn Error>> {
-    info!("Starting to add order to the database: {:?}", order.order_uid);
+    info!("Adding order with ID: {:?}", order.order_uid);
 
     let delivery_id = insert_delivery(&order.delivery, client).await?;
     insert_payment(&order.payment, client).await?;
@@ -16,12 +16,12 @@ pub async fn add_order(order: &Order, client: &Client) -> Result<(), Box<dyn Err
         insert_order_item(order, item, client).await?;
     }
 
-    info!("Order successfully added to the database: {:?}", order.order_uid);
+    info!("Successfully added order with ID: {:?}", order.order_uid);
     Ok(())
 }
 
 async fn insert_delivery(delivery: &Delivery, client: &Client) -> Result<i64, Box<dyn Error>> {
-    info!("Inserting delivery: {:?}", delivery);
+    info!("Adding delivery");
 
     let query = r#"
         INSERT INTO delivery (
@@ -48,12 +48,12 @@ async fn insert_delivery(delivery: &Delivery, client: &Client) -> Result<i64, Bo
 
     let delivery_id: i64 = row.get(0);
 
-    info!("Delivery inserted with ID: {}", delivery_id);
+    info!("Successfully added delivery with ID: {:?}", delivery_id);
     Ok(delivery_id)
 }
 
 async fn insert_payment(payment: &Payment, client: &Client) -> Result<(), Box<dyn Error>> {
-    info!("Inserting payment: {:?}", payment.transaction);
+    info!("Adding payment with ID: {:?}", payment.transaction);
 
     let query = r#"
         INSERT INTO payment (
@@ -83,12 +83,12 @@ async fn insert_payment(payment: &Payment, client: &Client) -> Result<(), Box<dy
         &payment.custom_fee,
     ]).await?;
 
-    info!("Payment inserted: {}", payment.transaction);
+    info!("Successfully added payment with ID: {:?}", payment.transaction);
     Ok(())
 }
 
 async fn insert_order(order: &Order, client: &Client, delivery_id: i64) -> Result<(), Box<dyn Error>> {
-    info!("Inserting order: {:?}", order.order_uid);
+    info!("Adding order info with ID: {:?}", order.order_uid);
 
     let query = r#"
         INSERT INTO order_info (
@@ -124,12 +124,12 @@ async fn insert_order(order: &Order, client: &Client, delivery_id: i64) -> Resul
         &order.oof_shard,
     ]).await?;
 
-    info!("Order inserted: {:?}", order.order_uid);
+    info!("Successfully added order info with ID: {:?}", order.order_uid);
     Ok(())
 }
 
 async fn insert_item(item: &Item, client: &Client) -> Result<(), Box<dyn Error>> {
-    info!("Inserting item: {:?}", item.chrt_id);
+    info!("Adding item with ID: {:?}", item.chrt_id);
 
     let query = r#"
         INSERT INTO item (
@@ -161,12 +161,12 @@ async fn insert_item(item: &Item, client: &Client) -> Result<(), Box<dyn Error>>
         &item.status,
     ]).await?;
 
-    info!("Item inserted: {:?}", item.chrt_id);
+    info!("Succesfully added item with ID: {:?}", item.chrt_id);
     Ok(())
 }
 
 async fn insert_order_item(order: &Order, item: &Item, client: &Client) -> Result<(), Box<dyn Error>> {
-    info!("Inserting order_item: order_uid: {:?}, item_chrt_id: {:?}", order.order_uid, item.chrt_id);
+    info!("Adding order item with order ID: {:?}, item ID: {:?}", order.order_uid, item.chrt_id);
 
     let query = r#"
         INSERT INTO order_item (
@@ -177,11 +177,12 @@ async fn insert_order_item(order: &Order, item: &Item, client: &Client) -> Resul
 
     client.execute(query, &[&order.order_uid, &item.chrt_id]).await?;
 
-    info!("Order item inserted: order_uid: {:?}, item_chrt_id: {:?}", order.order_uid, item.chrt_id);
+    info!("Successfully added order item with order ID: {:?}, item ID: {:?}", order.order_uid, item.chrt_id);
     Ok(())
 }
 
 pub async fn get_order_by_uid(order_uid: String, client: &Client) -> Result<Order, Box<dyn Error>> {
+    info!("Getting order with ID: {:?}", order_uid);
     let query = r#"
             SELECT 
                 oi.order_uid, oi.track_number, oi.entry, oi.locale, oi.internal_signature, 
@@ -204,10 +205,13 @@ pub async fn get_order_by_uid(order_uid: String, client: &Client) -> Result<Orde
     let mut order = map_order_from_row(&row);
     order.items = get_items_for_order(&order.order_uid, client).await?;
 
+    info!("Successfully got order with ID: {:?}", order_uid);
     Ok(order)
 }
 
 async fn get_items_for_order(order_uid: &str, client: &Client) -> Result<Vec<Item>, Box<dyn Error>> {
+    info!("Getting items for order with ID: {:?}", order_uid);
+
     let query = r#"
             SELECT 
                 i.chrt_id, i.track_number, i.price, i.rid, i.name, i.sale, 
@@ -229,6 +233,8 @@ async fn get_items_for_order(order_uid: &str, client: &Client) -> Result<Vec<Ite
         let item = map_item_from_row(&row);
         items.push(item);
     }
+
+    info!("Successfully got items for order with ID: {:?}", order_uid);
 
     Ok(items)
 }
