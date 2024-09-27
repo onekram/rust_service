@@ -90,7 +90,6 @@ async fn create_order(
 
     match result {
         Ok(_) => {
-            info!("Order added successfully: {:?}", order);
             state.orders.insert(order.order_uid.clone(), order.clone());
             let pretty_json_order = serde_json::to_string_pretty(&order).unwrap();
             (StatusCode::OK, pretty_json_order)
@@ -111,7 +110,6 @@ async fn get_order(
     State(state): State<ClientAndCacheLock>,
 ) -> impl IntoResponse {
     let mut state = state.write().await;
-    
 
     match state.orders.get(&id) {
         Some(order) => {
@@ -122,10 +120,9 @@ async fn get_order(
             (StatusCode::OK, pretty_json_orders)
         },
         None => {
-            let result = db::get_order_by_uid(id, &state.client).await;
+            let result = db::get_order_by_uid(&id, &state.client).await;
             match result {
                 Ok(order) => {
-                    info!("Order get from db successfully: {:?}", order);
                     state.orders.insert(order.order_uid.clone(), order.clone());
                     let pretty_json_order = serde_json::to_string_pretty(&order).unwrap();
                     (StatusCode::OK, pretty_json_order)

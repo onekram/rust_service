@@ -181,7 +181,7 @@ async fn insert_order_item(order: &Order, item: &Item, client: &Client) -> Resul
     Ok(())
 }
 
-pub async fn get_order_by_uid(order_uid: String, client: &Client) -> Result<Order, Box<dyn Error>> {
+pub async fn get_order_by_uid(order_uid: &String, client: &Client) -> Result<Order, Box<dyn Error>> {
     info!("Getting order with ID: {:?}", order_uid);
     let query = r#"
             SELECT 
@@ -209,7 +209,7 @@ pub async fn get_order_by_uid(order_uid: String, client: &Client) -> Result<Orde
     Ok(order)
 }
 
-async fn get_items_for_order(order_uid: &str, client: &Client) -> Result<Vec<Item>, Box<dyn Error>> {
+async fn get_items_for_order(order_uid: &String, client: &Client) -> Result<Vec<Item>, Box<dyn Error>> {
     info!("Getting items for order with ID: {:?}", order_uid);
 
     let query = r#"
