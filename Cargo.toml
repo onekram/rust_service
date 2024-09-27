@@ -29,5 +29,8 @@ dotenv = "0.15"
 # time 
 chrono = "0.4"
 
+# cache
+lru = "0.12.4"
+
 [dev-dependencies]
 sqlx-cli = { version = "0.6", features = ["postgres"]}

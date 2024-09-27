@@ -25,11 +25,14 @@ pub struct CliArgs {
     #[arg(long, env)]
     pub db_name: String,
 
-    #[arg(short = 'l')]
+    #[arg(short = 'l', long)]
     pub log: bool,
+
+    #[arg(short = 'c', long, default_value_t = 100)]
+    pub cache_size: usize,
 }
 
-pub fn parse_urls(args: CliArgs) -> (String, String) {
+pub fn parse_urls(args: &CliArgs) -> (String, String) {
     let server_address = format!("{}:{}", args.server_host, args.server_port);
     let database_url = format!(
         "postgres://{}:{}@{}:{}/{}",

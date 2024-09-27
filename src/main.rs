@@ -16,7 +16,8 @@ use log::{info, error};
 
 use serde_json::json;
 
-use std::collections::HashMap;
+use lru::LruCache;
+use std::num::NonZeroUsize;
 
 mod model;
 use model::Order;
@@ -27,7 +28,7 @@ mod cli;
 use cli::CliArgs;
 struct ClientAndCache {
     pub client: Client,
-    pub orders: HashMap<String, Order>,
+    pub orders: LruCache<String, Order>,
 }
 type ClientAndCacheLock = Arc<RwLock<ClientAndCache>>;
 
@@ -40,8 +41,8 @@ async fn main() {
         log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
     }
 
-    let (server_address, database_url) = cli::parse_urls(args);
-    start_connection(server_address, database_url).await;
+    let (server_address, database_url) = cli::parse_urls(&args);
+    start_connection(server_address, database_url, args.cache_size).await;
 }
 
 fn create_router(state: ClientAndCacheLock) -> Router {
@@ -51,7 +52,7 @@ fn create_router(state: ClientAndCacheLock) -> Router {
     .with_state(state)
 }
 
-async fn start_connection(server_address: String, database_url: String) {
+async fn start_connection(server_address: String, database_url: String, cache_size: usize) {
     info!("Starting server...");
 
     let (client, connection) = tokio_postgres::connect(&database_url, NoTls)
@@ -67,7 +68,7 @@ async fn start_connection(server_address: String, database_url: String) {
     let app = create_router(Arc::new(RwLock::new(
         ClientAndCache {
             client,
-            orders: HashMap::new(),
+            orders: LruCache::new(NonZeroUsize::new(cache_size).unwrap()),
         }
     )));
 
@@ -90,7 +91,7 @@ async fn create_order(
 
     match result {
         Ok(_) => {
-            state.orders.insert(order.order_uid.clone(), order.clone());
+            state.orders.put(order.order_uid.clone(), order.clone());
             let pretty_json_order = serde_json::to_string_pretty(&order).unwrap();
             (StatusCode::OK, pretty_json_order)
         }
@@ -123,7 +124,7 @@ async fn get_order(
             let result = db::get_order_by_uid(&id, &state.client).await;
             match result {
                 Ok(order) => {
-                    state.orders.insert(order.order_uid.clone(), order.clone());
+                    state.orders.put(order.order_uid.clone(), order.clone());
                     let pretty_json_order = serde_json::to_string_pretty(&order).unwrap();
                     (StatusCode::OK, pretty_json_order)
                 }
