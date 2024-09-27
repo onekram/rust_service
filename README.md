@@ -6,7 +6,7 @@
 
 ## Запуск приложения, CLI
 ```
-cargo run -- -l --server-host <SERVER_HOST> --server-port <SERVER_PORT> --db-user <DB_USER> --db-password <DB_PASSWORD> --db-host <DB_HOST> --db-port <DB_PORT> --db-name <DB_NAME>
+cargo run -- -l --server-host <SERVER_HOST> --server-port <SERVER_PORT> --db-user <DB_USER> --db-password <DB_PASSWORD> --db-host <DB_HOST> --db-port <DB_PORT> --db-name <DB_NAME> --cache-size <CACHE_SIZE>
 ```
 #### Информация об аргументах командной строки
 ```
