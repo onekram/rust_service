@@ -10,10 +10,10 @@ pub struct CliArgs {
     #[arg(long, env)]
     pub server_port: u16,
 
-    #[arg(short = 'u', long, env)]
+    #[arg(short = 'u', long, env, help = "Database username")]
     pub db_user: String,
 
-    #[arg(short = 'p', long, env)]
+    #[arg(short = 'p', long, env, help = "Database user password")]
     pub db_password: String,
 
     #[arg(long, env)]
@@ -25,10 +25,10 @@ pub struct CliArgs {
     #[arg(long, env)]
     pub db_name: String,
 
-    #[arg(short = 'l', long)]
+    #[arg(short = 'l', long, help = "Enable logging")]
     pub log: bool,
 
-    #[arg(short = 'c', long, default_value_t = 100)]
+    #[arg(short = 'c', long, default_value_t = 100, help = "LRU cache size")]
     pub cache_size: usize,
 }
 
