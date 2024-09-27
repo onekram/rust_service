@@ -68,7 +68,7 @@ async fn start_connection(server_address: String, database_url: String, cache_si
     let app = create_router(Arc::new(RwLock::new(
         ClientAndCache {
             client,
-            orders: LruCache::new(NonZeroUsize::new(cache_size).unwrap()),
+            orders: LruCache::new(NonZeroUsize::new(cache_size).expect("Incorrect cache size passed")),
         }
     )));
 
