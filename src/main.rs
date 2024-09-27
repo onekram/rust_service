@@ -40,6 +40,13 @@ async fn main() {
     start_connection(server_address, database_url).await;
 }
 
+fn create_router(state: ClientAndCacheLock) -> Router {
+    Router::new()
+    .route("/add_order", post(create_order))
+    .route("/get_order/:uid", get(get_order))
+    .with_state(state)
+}
+
 async fn start_connection(server_address: String, database_url: String) {
     info!("Starting server...");
 
@@ -53,17 +60,12 @@ async fn start_connection(server_address: String, database_url: String) {
         }
     });
 
-    let app = Router::new()
-    .route("/add_order", post(create_order))
-    .route("/get_order/:uid", get(get_order))
-    .with_state(Arc::new(RwLock::new(
+    let app = create_router(Arc::new(RwLock::new(
         ClientAndCache {
             client,
             orders: HashMap::new(),
         }
     )));
-
-    
 
     let addr = server_address.parse().expect("Unable to parse address");
     info!("Listening on {}", addr);
