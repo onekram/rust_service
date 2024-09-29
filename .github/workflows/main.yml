@@ -49,10 +49,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build
-        run: cargo build
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
 
-      - name: Create tables
+      - name: Install sqlx-cli
+        run: cargo install sqlx-cli --no-default-features --features postgres
+
+      - name: Run migrations
         run: sqlx migrate run
         
       - name: Run application in background
