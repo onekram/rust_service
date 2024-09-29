@@ -58,5 +58,8 @@ jobs:
       - name: Install sqlx-cli
         run: cargo install sqlx-cli --no-default-features --features postgres
 
+      - name: Build
+        run: cargo build --release
+
       - name: Run tests
         run: bash ./app_test.sh
