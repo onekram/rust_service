@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  formatting-check:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run cargo clippy
+        run: cargo clippy --all-targets --all-features
+        
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: orders_db
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: mypassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U myuser"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Inst
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'  # Укажите нужную версию Python
+
+      - name: Build
+        run: cargo build
+
+      - name: Run tests
+        env:
+          SERVER_HOST: 127.0.0.1
+          SERVER_PORT: 8000
+          
+          DB_USER: myuser
+          DB_PASSWORD: mypassword
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_NAME: orders_db
+          
+          DATABASE_URL: postgres://${{DB_USER}}:${{DB_PASSWORD}}@${{DB_HOST}}:${{DB_PORT}}/${{DB_NAME}}
+
+        run: cargo run -- -l
