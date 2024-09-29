@@ -67,7 +67,7 @@ jobs:
           echo $! > pid.txt
 
       - name: Run tests
-        run: bash ./app-test.sh
+        run: bash ./app_test.sh
 
       - name: Stop application
         run: |
