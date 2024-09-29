@@ -94,10 +94,10 @@ send_get_request() {
 }
 
 yes | sqlx database reset
-cargo run &
+cargo run --release &
 PID=$!
 
-sleep 10
+sleep 20
 
 for i in {1..100}; do 
 
@@ -107,6 +107,7 @@ for i in {1..100}; do
 
      if [[ "$response_post" -ne 200 ]] ; then
           echo "Ошибка отправки POST $response_post"
+          kill $PID
           exit 1
      fi
 
@@ -115,6 +116,7 @@ for i in {1..100}; do
 
      if [[ "$response_get" -ne 200 ]] ; then
           echo "Ошибка отправки GET $response_get"
+          kill $PID
           exit 1
      fi
 
