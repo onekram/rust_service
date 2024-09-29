@@ -97,7 +97,7 @@ yes | sqlx database reset
 cargo run &
 PID=$!
 
-sleep 1
+sleep 10
 
 for i in {1..100}; do 
 
