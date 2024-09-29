@@ -101,7 +101,7 @@ for i in {1..100}; do
      response_post=$(send_post_request "$json")
 
      if [[ "$response_post" -ne 200 ]] ; then
-          echo "Ошибка отправки POST"
+          echo "Ошибка отправки POST $response_post"
           exit 1
      fi
 
@@ -109,7 +109,7 @@ for i in {1..100}; do
      response_get=$(send_get_request "$i")
 
      if [[ "$response_get" -ne 200 ]] ; then
-          echo "Ошибка отправки GET"
+          echo "Ошибка отправки GET $response_get"
           exit 1
      fi
 
