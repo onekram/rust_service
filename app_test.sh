@@ -93,6 +93,11 @@ send_get_request() {
     echo $response
 }
 
+yes | sqlx database reset
+cargo run &
+PID=$!
+
+sleep 1
 
 for i in {1..100}; do 
 
@@ -114,5 +119,6 @@ for i in {1..100}; do
      fi
 
 done 
+kill $PID
 
 echo "Успешно"
