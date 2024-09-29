@@ -1,5 +1,6 @@
 use serde::{Serialize, Deserialize};
 
+//  Структура информации о доставке
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Delivery {
     pub name: String,
@@ -11,6 +12,7 @@ pub struct Delivery {
     pub email: String,
 }
 
+// Структура информации об оплате
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Payment {
     pub transaction: String,
@@ -25,6 +27,7 @@ pub struct Payment {
     pub custom_fee: i32,
 }
 
+// Структура информации о товаре
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Item {
     pub chrt_id: i64,
@@ -40,6 +43,7 @@ pub struct Item {
     pub status: i32,
 }
 
+// Структора информации о заказе
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Order {
     pub order_uid: String,

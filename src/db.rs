@@ -1,28 +1,34 @@
-use std::error::Error;
-use tokio_postgres::Client;
-use crate::model::{Order, Delivery, Payment, Item};
-use log::info;
+use std::error::Error; // Импортируем тип Error для обработки ошибок
+use tokio_postgres::Client; // Импортируем клиент для работы с PostgreSQL
+use crate::model::{Order, Delivery, Payment, Item}; // Импортируем модели данных
+use log::info; // Импортируем макрос для логирования информации
 
-
+// Асинхронная функция для добавления заказа в базу данных
 pub async fn add_order(order: &Order, client: &Client) -> Result<(), Box<dyn Error>> {
-    info!("Adding order with ID: {:?}", order.order_uid);
+    info!("Adding order with ID: {:?}", order.order_uid); // Логируем добавление заказа
 
+    // Вставляем информацию о доставке и получаем ID доставки
     let delivery_id = insert_delivery(&order.delivery, client).await?;
+    // Вставляем информацию о платеже
     insert_payment(&order.payment, client).await?;
+    // Вставляем информацию о заказе
     insert_order(order, client, delivery_id).await?;
 
+    // Вставляем каждый элемент заказа
     for item in &order.items {
-        insert_item(item, client).await?;
-        insert_order_item(order, item, client).await?;
+        insert_item(item, client).await?; // Вставляем элемент
+        insert_order_item(order, item, client).await?; // Связываем элемент с заказом
     }
 
-    info!("Successfully added order with ID: {:?}", order.order_uid);
-    Ok(())
+    info!("Successfully added order with ID: {:?}", order.order_uid); // Логируем успешное добавление заказа
+    Ok(()) // Возвращаем успешный результат
 }
 
+// Асинхронная функция для вставки информации о доставке
 async fn insert_delivery(delivery: &Delivery, client: &Client) -> Result<i64, Box<dyn Error>> {
-    info!("Adding delivery");
+    info!("Adding delivery"); // Логируем добавление доставки
 
+    // SQL-запрос для вставки информации о доставке
     let query = r#"
         INSERT INTO delivery (
             name,
@@ -35,7 +41,7 @@ async fn insert_delivery(delivery: &Delivery, client: &Client) -> Result<i64, Bo
         ) VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING delivery_id
     "#;
-
+    // Выполняем запрос и получаем ID доставки
     let row = client.query_one(query, &[
         &delivery.name, 
         &delivery.phone, 
@@ -46,15 +52,18 @@ async fn insert_delivery(delivery: &Delivery, client: &Client) -> Result<i64, Bo
         &delivery.email
     ]).await?;
 
-    let delivery_id: i64 = row.get(0);
 
-    info!("Successfully added delivery with ID: {:?}", delivery_id);
-    Ok(delivery_id)
+    let delivery_id: i64 = row.get(0); // Извлекаем ID доставки
+
+    info!("Successfully added delivery with ID: {:?}", delivery_id); // Логируем успешное добавление доставки
+    Ok(delivery_id) // Возвращаем ID доставки
 }
 
+// Асинхронная функция для вставки информации о платеже
 async fn insert_payment(payment: &Payment, client: &Client) -> Result<(), Box<dyn Error>> {
-    info!("Adding payment with ID: {:?}", payment.transaction);
+    info!("Adding payment with ID: {:?}", payment.transaction); // Логируем добавление платежа
 
+    // SQL-запрос для вставки информации о платеже
     let query = r#"
         INSERT INTO payment (
             transaction,
@@ -69,7 +78,7 @@ async fn insert_payment(payment: &Payment, client: &Client) -> Result<(), Box<dy
             custom_fee
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     "#;
-
+    // Выполняем запрос для вставки информации о платеже
     client.execute(query, &[
         &payment.transaction,
         &payment.request_id,
@@ -83,13 +92,17 @@ async fn insert_payment(payment: &Payment, client: &Client) -> Result<(), Box<dy
         &payment.custom_fee,
     ]).await?;
 
-    info!("Successfully added payment with ID: {:?}", payment.transaction);
-    Ok(())
+
+    info!("Successfully added payment with ID: {:?}", payment.transaction); // Логируем успешное добавление платежа
+    Ok(()) // Возвращаем успешный результат
 }
 
+// Асинхронная функция для вставки информации о заказе в базу данных
 async fn insert_order(order: &Order, client: &Client, delivery_id: i64) -> Result<(), Box<dyn Error>> {
+    // Логируем информацию о добавляемом заказе
     info!("Adding order info with ID: {:?}", order.order_uid);
 
+    // SQL-запрос для вставки данных о заказе
     let query = r#"
         INSERT INTO order_info (
             order_uid,
@@ -108,6 +121,7 @@ async fn insert_order(order: &Order, client: &Client, delivery_id: i64) -> Resul
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
     "#;
 
+    // Выполняем запрос с передачей параметров
     client.execute(query, &[
         &order.order_uid,
         &order.track_number,
@@ -124,13 +138,17 @@ async fn insert_order(order: &Order, client: &Client, delivery_id: i64) -> Resul
         &order.oof_shard,
     ]).await?;
 
+    // Логируем успешное добавление заказа
     info!("Successfully added order info with ID: {:?}", order.order_uid);
     Ok(())
 }
 
+// Асинхронная функция для вставки информации о товаре в базу данных
 async fn insert_item(item: &Item, client: &Client) -> Result<(), Box<dyn Error>> {
+    // Логируем информацию о добавляемом товаре
     info!("Adding item with ID: {:?}", item.chrt_id);
 
+    // SQL-запрос для вставки данных о товаре
     let query = r#"
         INSERT INTO item (
             chrt_id,
@@ -147,6 +165,7 @@ async fn insert_item(item: &Item, client: &Client) -> Result<(), Box<dyn Error>>
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     "#;
 
+    // Выполняем запрос с передачей параметров
     client.execute(query, &[
         &item.chrt_id,
         &item.track_number,
@@ -161,13 +180,17 @@ async fn insert_item(item: &Item, client: &Client) -> Result<(), Box<dyn Error>>
         &item.status,
     ]).await?;
 
-    info!("Succesfully added item with ID: {:?}", item.chrt_id);
+    // Логируем успешное добавление товара
+    info!("Successfully added item with ID: {:?}", item.chrt_id);
     Ok(())
 }
 
+// Асинхронная функция для вставки связи между заказом и товаром в базу данных
 async fn insert_order_item(order: &Order, item: &Item, client: &Client) -> Result<(), Box<dyn Error>> {
+    // Логируем информацию о добавляемом элементе заказа
     info!("Adding order item with order ID: {:?}, item ID: {:?}", order.order_uid, item.chrt_id);
 
+    // SQL-запрос для вставки связи между заказом и товаром
     let query = r#"
         INSERT INTO order_item (
         order_uid,
@@ -175,14 +198,20 @@ async fn insert_order_item(order: &Order, item: &Item, client: &Client) -> Resul
         ) VALUES ($1, $2)
     "#;
 
+    // Выполняем запрос с передачей параметров
     client.execute(query, &[&order.order_uid, &item.chrt_id]).await?;
 
+    // Логируем успешное добавление элемента заказа
     info!("Successfully added order item with order ID: {:?}, item ID: {:?}", order.order_uid, item.chrt_id);
     Ok(())
 }
 
+// Асинхронная функция для получения заказа по уникальному идентификатору (UID)
 pub async fn get_order_by_uid(order_uid: &String, client: &Client) -> Result<Order, Box<dyn Error>> {
+    // Логируем информацию о запрашиваемом заказе
     info!("Getting order with ID: {:?}", order_uid);
+    
+    // SQL-запрос для получения информации о заказе и связанных данных
     let query = r#"
             SELECT 
                 oi.order_uid, oi.track_number, oi.entry, oi.locale, oi.internal_signature, 
@@ -199,19 +228,27 @@ pub async fn get_order_by_uid(order_uid: &String, client: &Client) -> Result<Ord
             WHERE 
                 oi.order_uid = $1
             "#;
-    let row = client.query_one(query,&[&order_uid]).await?;
 
+    // Выполняем запрос и получаем одну строку результата
+    let row = client.query_one(query, &[&order_uid]).await?;
 
+    // Преобразуем строку результата в структуру Order
     let mut order = map_order_from_row(&row);
+    
+    // Получаем товары, связанные с заказом
     order.items = get_items_for_order(&order.order_uid, client).await?;
 
+    // Логируем успешное получение заказа
     info!("Successfully got order with ID: {:?}", order_uid);
     Ok(order)
 }
 
+// Асинхронная функция для получения товаров, связанных с заказом
 async fn get_items_for_order(order_uid: &String, client: &Client) -> Result<Vec<Item>, Box<dyn Error>> {
+    // Логируем информацию о запрашиваемых товарах для заказа
     info!("Getting items for order with ID: {:?}", order_uid);
 
+    // SQL-запрос для получения информации о товарах, связанных с заказом
     let query = r#"
             SELECT 
                 i.chrt_id, i.track_number, i.price, i.rid, i.name, i.sale, 
@@ -224,16 +261,19 @@ async fn get_items_for_order(order_uid: &String, client: &Client) -> Result<Vec<
                 oi.order_uid = $1
             "#;
     
-    let rows = client
-        .query(query,&[&order_uid],).await?;
+    // Выполняем запрос и получаем все строки результата
+    let rows = client.query(query, &[&order_uid]).await?;
 
+    // Создаем вектор для хранения товаров
     let mut items = Vec::new();
 
+    // Проходим по всем строкам результата и преобразуем их в структуры Item
     for row in rows {
         let item = map_item_from_row(&row);
         items.push(item);
     }
 
+    // Логируем успешное получение товаров для заказа
     info!("Successfully got items for order with ID: {:?}", order_uid);
 
     Ok(items)
@@ -255,6 +295,7 @@ fn map_item_from_row(row: &tokio_postgres::Row) -> Item {
     }
 }
 
+// Маппинг заказа из строки, полученного из таблицы
 fn map_order_from_row(row: &tokio_postgres::Row) -> Order {
     let delivery =     Delivery {
         name: row.get("name"),
