@@ -1,7 +1,5 @@
 #!/bin/bash
 
-echo "Running request"
-
 get_order_json() {
     local index=$1
 
@@ -85,42 +83,56 @@ send_get_request() {
     response=$(
         curl -X GET "$url" \
             -H "Content-Type: application/json" \
-            -o /dev/null \
-            -s \
-            -w "%{http_code}"
+            -w "%{http_code}" \
+            -s
     )
 
     echo $response
 }
 
+echo "Database reset"
 yes | sqlx database reset
+
+echo "Build app"
+cargo build --release
+
+echo "Run app"
 cargo run --release &
 PID=$!
 
-sleep 20
+sleep 5
 
 for i in {1..100}; do 
+    echo "Test $i"
 
-     json=$(get_order_json "$i")
+    json=$(get_order_json "$i")
+    response_post=$(send_post_request "$json")
 
-     response_post=$(send_post_request "$json")
-
-     if [[ "$response_post" -ne 200 ]] ; then
-          echo "Ошибка отправки POST $response_post"
-          kill $PID
-          exit 1
-     fi
+    if [[ "$response_post" -ne 200 ]] ; then
+        echo "Error POST request, http-code: $response_post"
+        kill $PID
+        exit 1
+    fi
 
 
-     response_get=$(send_get_request "$i")
+    response_get=$(send_get_request "$i")
+    http_code="${response_get: -3}"
+    json_response="${response_get:0:${#response_get}-3}"
 
-     if [[ "$response_get" -ne 200 ]] ; then
-          echo "Ошибка отправки GET $response_get"
-          kill $PID
-          exit 1
-     fi
+    if [[ "$http_code" -ne 200 ]] ; then
+        echo "Error GET get request, http-code: $http_code"
+        kill $PID
+        exit 1
+    fi
+
+    if ! diff <(echo "$json" | jq -S .) <(echo "$json_response" | jq -S .); then
+        echo "JSON do not match for $i order"
+        kill $PID
+        exit 1
+    fi
 
 done 
+
 kill $PID
 
-echo "Успешно"
+echo "Success"
