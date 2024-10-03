@@ -8,11 +8,11 @@ pub async fn add_order(order: &Order, client: &Client) -> Result<(), Box<dyn Err
     info!("Adding order with ID: {:?}", order.order_uid); // Логируем добавление заказа
 
     // Вставляем информацию о доставке и получаем ID доставки
-    let delivery_id = insert_delivery(&order.delivery, client).await?;
+    let delivery_id = insert_delivery(&order.delivery, client).await?;  // '?' указывает на то, что при возврате ошибки, она прокинется наверх к вызывающей стороне
     // Вставляем информацию о платеже
-    insert_payment(&order.payment, client).await?;
+    insert_payment(&order.payment, client).await?;  // '?' указывает на то, что при возврате ошибки, она прокинется наверх к вызывающей стороне
     // Вставляем информацию о заказе
-    insert_order(order, client, delivery_id).await?;
+    insert_order(order, client, delivery_id).await?;  // '?' указывает на то, что при возврате ошибки, она прокинется наверх к вызывающей стороне
 
     // Вставляем каждый элемент заказа
     for item in &order.items {
@@ -50,7 +50,7 @@ async fn insert_delivery(delivery: &Delivery, client: &Client) -> Result<i64, Bo
         &delivery.address, 
         &delivery.region, 
         &delivery.email
-    ]).await?;
+    ]).await?;  // '?' указывает на то, что при возврате ошибки, она прокинется наверх к вызывающей стороне
 
 
     let delivery_id: i64 = row.get(0); // Извлекаем ID доставки
@@ -90,7 +90,7 @@ async fn insert_payment(payment: &Payment, client: &Client) -> Result<(), Box<dy
         &payment.delivery_cost,
         &payment.goods_total,
         &payment.custom_fee,
-    ]).await?;
+    ]).await?;  // '?' указывает на то, что при возврате ошибки, она прокинется наверх к вызывающей стороне
 
 
     info!("Successfully added payment with ID: {:?}", payment.transaction); // Логируем успешное добавление платежа
@@ -136,7 +136,7 @@ async fn insert_order(order: &Order, client: &Client, delivery_id: i64) -> Resul
         &order.sm_id,
         &order.date_created,
         &order.oof_shard,
-    ]).await?;
+    ]).await?;  // '?' указывает на то, что при возврате ошибки, она прокинется наверх к вызывающей стороне
 
     // Логируем успешное добавление заказа
     info!("Successfully added order info with ID: {:?}", order.order_uid);
@@ -178,7 +178,7 @@ async fn insert_item(item: &Item, client: &Client) -> Result<(), Box<dyn Error>>
         &item.nm_id,
         &item.brand,
         &item.status,
-    ]).await?;
+    ]).await?;  // '?' указывает на то, что при возврате ошибки, она прокинется наверх к вызывающей стороне
 
     // Логируем успешное добавление товара
     info!("Successfully added item with ID: {:?}", item.chrt_id);
@@ -199,7 +199,7 @@ async fn insert_order_item(order: &Order, item: &Item, client: &Client) -> Resul
     "#;
 
     // Выполняем запрос с передачей параметров
-    client.execute(query, &[&order.order_uid, &item.chrt_id]).await?;
+    client.execute(query, &[&order.order_uid, &item.chrt_id]).await?;  // '?' указывает на то, что при возврате ошибки, она прокинется наверх к вызывающей стороне
 
     // Логируем успешное добавление элемента заказа
     info!("Successfully added order item with order ID: {:?}, item ID: {:?}", order.order_uid, item.chrt_id);
@@ -230,13 +230,13 @@ pub async fn get_order_by_uid(order_uid: &String, client: &Client) -> Result<Ord
             "#;
 
     // Выполняем запрос и получаем одну строку результата
-    let row = client.query_one(query, &[&order_uid]).await?;
+    let row = client.query_one(query, &[&order_uid]).await?;  // '?' указывает на то, что при возврате ошибки, она прокинется наверх к вызывающей стороне
 
     // Преобразуем строку результата в структуру Order
     let mut order = map_order_from_row(&row);
     
     // Получаем товары, связанные с заказом
-    order.items = get_items_for_order(&order.order_uid, client).await?;
+    order.items = get_items_for_order(&order.order_uid, client).await?;  // '?' указывает на то, что при возврате ошибки, она прокинется наверх к вызывающей стороне
 
     // Логируем успешное получение заказа
     info!("Successfully got order with ID: {:?}", order_uid);
@@ -262,7 +262,7 @@ async fn get_items_for_order(order_uid: &String, client: &Client) -> Result<Vec<
             "#;
     
     // Выполняем запрос и получаем все строки результата
-    let rows = client.query(query, &[&order_uid]).await?;
+    let rows = client.query(query, &[&order_uid]).await?;  // '?' указывает на то, что при возврате ошибки, она прокинется наверх к вызывающей стороне
 
     // Создаем вектор для хранения товаров
     let mut items = Vec::new();
